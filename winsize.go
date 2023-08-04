@@ -1,11 +1,9 @@
 package pty
 
-import "os"
-
 // InheritSize applies the terminal size of pty to tty. This should be run
 // in a signal handler for syscall.SIGWINCH to automatically resize the tty when
 // the pty receives a window size change notification.
-func InheritSize(pty, tty *os.File) error {
+func InheritSize(pty, tty File) error {
 	size, err := GetsizeFull(pty)
 	if err != nil {
 		return err

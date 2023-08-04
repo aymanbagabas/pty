@@ -6,9 +6,17 @@ import (
 	"io"
 )
 
-// ErrUnsupported is returned if a function is not
-// available on the current platform.
-var ErrUnsupported = errors.New("unsupported")
+var (
+	// ErrUnsupported is returned if a function is not
+	// available on the current platform.
+	ErrUnsupported = errors.New("unsupported")
+
+	// ErrNotPty is returned if a file is not a pty.
+	ErrNotPty = errors.New("not a pty")
+
+	// ErrClosed is returned if a file is closed.
+	ErrClosed = errors.New("pty closed")
+)
 
 // File represents a pseudo-terminal file.
 type File interface {

@@ -1,3 +1,6 @@
+//go:build !windows
+// +build !windows
+
 package pty
 
 import (
@@ -5,13 +8,19 @@ import (
 	"syscall"
 )
 
-// Start assigns a pseudo-terminal tty os.File to c.Stdin, c.Stdout,
+// StartWithSize assigns a pseudo-terminal tty os.File to c.Stdin, c.Stdout,
 // and c.Stderr, calls c.Start, and returns the File of the tty's
 // corresponding pty.
 //
+// This will resize the pty to the specified size before starting the command.
 // Starts the process in a new session and sets the controlling terminal.
-func Start(cmd *exec.Cmd) (File, error) {
-	return StartWithSize(cmd, nil)
+func StartWithSize(cmd *Cmd, ws *Winsize) (File, error) {
+	if cmd.SysProcAttr == nil {
+		cmd.SysProcAttr = &syscall.SysProcAttr{}
+	}
+	cmd.SysProcAttr.Setsid = true
+	cmd.SysProcAttr.Setctty = true
+	return StartWithAttrs(cmd, ws, cmd.SysProcAttr)
 }
 
 // StartWithAttrs assigns a pseudo-terminal tty os.File to c.Stdin, c.Stdout,
@@ -23,7 +32,7 @@ func Start(cmd *exec.Cmd) (File, error) {
 //
 // This should generally not be needed. Used in some edge cases where it is needed to create a pty
 // without a controlling terminal.
-func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (File, error) {
+func StartWithAttrs(cmd *Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (File, error) {
 	pty, tty, err := Open()
 	if err != nil {
 		return nil, err
@@ -36,6 +45,8 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (File,
 			return nil, err
 		}
 	}
+
+	c := cmd.AsExec()
 	if c.Stdout == nil {
 		c.Stdout = tty
 	}
