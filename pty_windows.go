@@ -58,31 +58,31 @@ func openPty() (*conPty, error) {
 	consoleSize := uintptr(80) + (uintptr(80) << 16)
 	ret, _, err := procCreatePseudoConsole.Call(
 		consoleSize,
-		uintptr(windows.Handle(pty.consoler.Fd())),
-		uintptr(windows.Handle(pty.consoler.Fd())),
+		uintptr(pty.pr.Fd()),
+		uintptr(pty.pw.Fd()),
 		0,
 		uintptr(unsafe.Pointer(&pty.console)),
 	)
 	// CreatePseudoConsole returns S_OK on success, as per:
 	// https://learn.microsoft.com/en-us/windows/console/createpseudoconsole
 	if windows.Handle(ret) != windows.S_OK {
-		_ = pty.consolew.Close()
-		_ = pty.pr.Close()
-		_ = pty.pw.Close()
-		_ = pty.consoler.Close()
+		pty.consolew.Close()
+		pty.pr.Close()
+		pty.pw.Close()
+		pty.consoler.Close()
 		return nil, fmt.Errorf("create pseudo console (%d): %w", int32(ret), err)
 	}
 
 	// These pipes can be closed here without any worry
-	// err = pty.consolew.Close()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to close pseudo console handle: %w", err)
-	// }
+	err = pty.consolew.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to close pseudo console handle: %w", err)
+	}
 
-	// err = pty.consoler.Close()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to close pseudo console handle: %w", err)
-	// }
+	err = pty.consoler.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to close pseudo console handle: %w", err)
+	}
 
 	return pty, nil
 }
@@ -163,12 +163,10 @@ type conFile struct {
 }
 
 func (p *conFile) Close() error {
-	err := errors.Join(p.r.Close(), p.w.Close())
 	if p.master {
-		err = errors.Join(err, p.conPty.closeConsoleNoLock())
+		return p.conPty.Close()
 	}
-
-	return err
+	return errors.Join(p.r.Close(), p.w.Close())
 }
 
 func (p *conFile) Read(b []byte) (int, error) {

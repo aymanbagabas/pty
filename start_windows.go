@@ -40,7 +40,7 @@ func StartWithAttrs(cmd *Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (File, er
 		return nil, err
 	}
 
-	ptyf, ttyf := winPty.ptyf(), winPty.ttyf()
+	ptyf, _ := winPty.ptyf(), winPty.ttyf()
 	defer func() {
 		if err != nil {
 			// we hit some error finishing setup; close pty, so
@@ -59,7 +59,7 @@ func StartWithAttrs(cmd *Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (File, er
 		return nil, err
 	}
 
-	return ttyf, nil
+	return ptyf, nil
 }
 
 // Allocates a PTY and starts the specified command attached to it.
@@ -108,8 +108,8 @@ func (p *conPty) start(cmd *Cmd) (retErr error) {
 	// Acquire the fork lock so that no other threads
 	// create new fds that are not yet close-on-exec
 	// before we fork.
-	// syscall.ForkLock.Lock()
-	// defer syscall.ForkLock.Unlock()
+	syscall.ForkLock.Lock()
+	defer syscall.ForkLock.Unlock()
 
 	startupInfo := &windows.StartupInfoEx{}
 	startupInfo.ProcThreadAttributeList = attrs.List()

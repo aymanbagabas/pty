@@ -33,7 +33,7 @@ func setsize(p *conPty, size *Winsize) error {
 	}
 
 	// Taken from: https://github.com/microsoft/hcsshim/blob/54a5ad86808d761e3e396aff3e2022840f39f9a8/internal/winapi/zsyscall_windows.go#L144
-	ret, _, err := procResizePseudoConsole.Call(uintptr(p.console), uintptr(*((*uint32)(unsafe.Pointer(&windows.Coord{
+	ret, _, err := procResizePseudoConsole.Call(p.Fd(), uintptr(*((*uint32)(unsafe.Pointer(&windows.Coord{
 		Y: int16(size.Rows),
 		X: int16(size.Cols),
 	})))))
