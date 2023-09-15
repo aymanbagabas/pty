@@ -27,8 +27,9 @@ import (
 type windowExecCmd struct {
 	cmd        *exec.Cmd
 	waitCalled bool
-	conPty     *WindowsPty
+	conPty     *conPty
 	attrList   *windows.ProcThreadAttributeListContainer
+	cmdErr     error
 }
 
 func (c *windowExecCmd) close() error {

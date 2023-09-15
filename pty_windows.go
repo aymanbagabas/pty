@@ -13,17 +13,14 @@ import (
 )
 
 const (
-	PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE = 0x20016
+	_PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE = 0x20016
 )
 
-type WindowsPty struct {
+type conPty struct {
 	handle windows.Handle
 	r, w   *os.File
-}
-
-type WindowsTty struct {
-	handle windows.Handle
-	r, w   *os.File
+	closer func(*conPty) error
+	name   string
 }
 
 var (
@@ -42,7 +39,7 @@ var (
 	getConsoleScreenBufferInfo = kernel32DLL.NewProc("GetConsoleScreenBufferInfo")
 )
 
-func open() (_ Pty, _ Tty, err error) {
+func open() (_ *conPty, _ *conPty, err error) {
 	pr, consoleW, err := os.Pipe()
 	if err != nil {
 		return nil, nil, err
@@ -78,82 +75,67 @@ func open() (_ Pty, _ Tty, err error) {
 		return nil, nil, fmt.Errorf("failed to close pseudo console handle: %w", err)
 	}
 
-	return &WindowsPty{
+	return &conPty{
 			handle: consoleHandle,
 			r:      pr,
 			w:      pw,
-		}, &WindowsTty{
+			closer: winPtyCloser,
+			name:   "",
+		}, &conPty{
 			handle: consoleHandle,
 			r:      consoleR,
 			w:      consoleW,
+			closer: winTtyCloser,
+			// See: https://github.com/PowerShell/openssh-portable/blob/latestw_all/contrib/win32/win32compat/win32_sshpty.c#L36
+			name: "windows-pty",
 		}, nil
 }
 
-func (p *WindowsPty) Name() string {
-	return p.r.Name()
+func (p *conPty) Name() string {
+	return p.name
 }
 
-func (p *WindowsPty) Fd() uintptr {
+func (p *conPty) Fd() uintptr {
 	return uintptr(p.handle)
 }
 
-func (p *WindowsPty) Read(data []byte) (int, error) {
+func (p *conPty) Read(data []byte) (int, error) {
 	return p.r.Read(data)
 }
 
-func (p *WindowsPty) Write(data []byte) (int, error) {
+func (p *conPty) Write(data []byte) (int, error) {
 	return p.w.Write(data)
 }
 
-func (p *WindowsPty) WriteString(s string) (int, error) {
-	return p.w.WriteString(s)
+func (p *conPty) Close() error {
+	return p.closer(p)
 }
 
-func (p *WindowsPty) UpdateProcThreadAttribute(attrList *windows.ProcThreadAttributeListContainer) error {
-	var err error
+func winPtyConsoleCloser(p *conPty) error {
+	if p.handle != windows.InvalidHandle {
+		err := closePseudoConsole.Find()
+		if err != nil {
+			return err
+		}
 
-	if err = attrList.Update(
-		PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-		unsafe.Pointer(p.handle),
-		unsafe.Sizeof(p.handle),
-	); err != nil {
-		return fmt.Errorf("failed to update proc thread attributes for pseudo console: %w", err)
+		_, _, err = closePseudoConsole.Call(uintptr(p.handle))
+
+		p.handle = windows.InvalidHandle
+
+		return err
 	}
 
 	return nil
 }
 
-func (p *WindowsPty) Close() error {
+func winPtyCloser(p *conPty) error {
 	_ = p.r.Close()
 	_ = p.w.Close()
 
-	err := closePseudoConsole.Find()
-	if err != nil {
-		return err
-	}
-
-	_, _, err = closePseudoConsole.Call(uintptr(p.handle))
-
-	return err
+	return winPtyConsoleCloser(p)
 }
 
-func (t *WindowsTty) Name() string {
-	return t.r.Name()
-}
-
-func (t *WindowsTty) Fd() uintptr {
-	return uintptr(t.handle)
-}
-
-func (t *WindowsTty) Read(p []byte) (int, error) {
-	return t.r.Read(p)
-}
-
-func (t *WindowsTty) Write(p []byte) (int, error) {
-	return t.w.Write(p)
-}
-
-func (t *WindowsTty) Close() error {
+func winTtyCloser(t *conPty) error {
 	_ = t.r.Close()
 	return t.w.Close()
 }

@@ -8,22 +8,7 @@ import (
 	"syscall"
 )
 
-// StartWithSize assigns a pseudo-terminal Tty to c.Stdin, c.Stdout,
-// and c.Stderr, calls c.Start, and returns the File of the tty's
-// corresponding Pty.
-//
-// This will resize the Pty to the specified size before starting the command.
-// Starts the process in a new session and sets the controlling terminal.
-func StartWithSize(c *exec.Cmd, sz *Winsize) (Pty, error) {
-	if c.SysProcAttr == nil {
-		c.SysProcAttr = &syscall.SysProcAttr{}
-	}
-	c.SysProcAttr.Setsid = true
-	c.SysProcAttr.Setctty = true
-	return StartWithAttrs(c, sz, c.SysProcAttr)
-}
-
-// StartWithAttrs assigns a pseudo-terminal Tty to c.Stdin, c.Stdout,
+// start assigns a pseudo-terminal Tty to c.Stdin, c.Stdout,
 // and c.Stderr, calls c.Start, and returns the File of the tty's
 // corresponding Pty.
 //
@@ -32,23 +17,24 @@ func StartWithSize(c *exec.Cmd, sz *Winsize) (Pty, error) {
 //
 // This should generally not be needed. Used in some edge cases where it is needed to create a pty
 // without a controlling terminal.
-func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (Pty, error) {
+func start(c *exec.Cmd, opts ...StartOption) (File, error) {
 	pty, tty, err := open()
 	if err != nil {
 		return nil, err
 	}
+
+	for _, opt := range opts {
+		if err := opt(pty); err != nil {
+			return pty, err
+		}
+	}
+
 	defer func() {
 		// always close tty fds since it's being used in another process
 		// but pty is kept to resize tty
 		_ = tty.Close()
 	}()
 
-	if sz != nil {
-		if err := Setsize(pty, sz); err != nil {
-			_ = pty.Close()
-			return nil, err
-		}
-	}
 	if c.Stdout == nil {
 		c.Stdout = tty
 	}
@@ -59,7 +45,11 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (Pty, 
 		c.Stdin = tty
 	}
 
-	c.SysProcAttr = attrs
+	if c.SysProcAttr == nil {
+		c.SysProcAttr = &syscall.SysProcAttr{}
+		c.SysProcAttr.Setsid = true
+		c.SysProcAttr.Setctty = true
+	}
 
 	if err := c.Start(); err != nil {
 		_ = pty.Close()

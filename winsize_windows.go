@@ -37,7 +37,7 @@ func (c windowsCoord) Pack() uintptr {
 }
 
 // Setsize resizes t to ws.
-func Setsize(t FdHolder, ws *Winsize) error {
+func Setsize(t File, ws *Winsize) error {
 	var r0 uintptr
 	var err error
 
@@ -63,7 +63,7 @@ func Setsize(t FdHolder, ws *Winsize) error {
 }
 
 // GetsizeFull returns the full terminal size description.
-func GetsizeFull(t FdHolder) (size *Winsize, err error) {
+func GetsizeFull(t File) (size *Winsize, err error) {
 	err = getConsoleScreenBufferInfo.Find()
 	if err != nil {
 		return nil, err

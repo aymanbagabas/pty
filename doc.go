@@ -11,12 +11,28 @@ import (
 var ErrUnsupported = errors.New("unsupported")
 
 // Open a pty and its corresponding tty.
-func Open() (Pty, Tty, error) {
+func Open() (File, File, error) {
 	return open()
 }
 
 type FdHolder interface {
 	Fd() uintptr
+}
+
+// File is a generic file descriptor with a name.
+// It is used to represent the pty and tty file descriptors.
+// In unix systems, the real type is *os.File
+// In windows, the real type is a *WindowsFile to handle ConPTY.
+type File interface {
+	io.ReadWriteCloser
+
+	// Fd returns the file descriptor number.
+	Fd() uintptr
+
+	// Name returns the name of the file.
+	// For example /dev/pts/1 or /dev/ttys001.
+	// Windows TTY will always return "windows-pty".
+	Name() string
 }
 
 // Pty for terminal control in current process

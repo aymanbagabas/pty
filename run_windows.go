@@ -14,16 +14,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// StartWithSize assigns a pseudo-terminal Tty to c.Stdin, c.Stdout,
-// and c.Stderr, calls c.Start, and returns the File of the tty's
-// corresponding Pty.
-//
-// This will resize the Pty to the specified size before starting the command.
-// Starts the process in a new session and sets the controlling terminal.
-func StartWithSize(c *exec.Cmd, sz *Winsize) (Pty, error) {
-	return StartWithAttrs(c, sz, c.SysProcAttr)
-}
-
 // StartWithAttrs assigns a pseudo-terminal Tty to c.Stdin, c.Stdout,
 // and c.Stderr, calls c.Start, and returns the File of the tty's
 // corresponding Pty.
@@ -33,10 +23,20 @@ func StartWithSize(c *exec.Cmd, sz *Winsize) (Pty, error) {
 //
 // This should generally not be needed. Used in some edge cases where it is needed to create a pty
 // without a controlling terminal.
-func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (Pty, error) {
+func start(c *exec.Cmd, opts ...StartOption) (File, error) {
 	pty, _, err := open()
 	if err != nil {
 		return nil, err
+	}
+
+	for _, opt := range opts {
+		if err := opt(pty); err != nil {
+			return pty, err
+		}
+	}
+
+	if c.SysProcAttr == nil {
+		c.SysProcAttr = &syscall.SysProcAttr{}
 	}
 
 	defer func() {
@@ -46,22 +46,14 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (Pty, 
 		}
 	}()
 
-	if sz != nil {
-		if err = Setsize(pty, sz); err != nil {
-			return nil, err
-		}
-	}
-
 	// unlike unix command exec, do not set stdin/stdout/stderr
-
-	c.SysProcAttr = attrs
 
 	// do not use os/exec.Start since we need to append console handler to startup info
 
 	w := windowExecCmd{
 		cmd:        c,
 		waitCalled: false,
-		conPty:     pty.(*WindowsPty),
+		conPty:     pty,
 	}
 
 	err = w.Start()
@@ -177,7 +169,7 @@ func (c *windowExecCmd) Start() error {
 	}
 
 	if c.conPty != nil {
-		if err = c.conPty.UpdateProcThreadAttribute(c.attrList); err != nil {
+		if err = updateProcThreadAttribute(c.conPty.handle, c.attrList); err != nil {
 			return err
 		}
 	}
@@ -219,19 +211,92 @@ func (c *windowExecCmd) Start() error {
 
 	defer func() {
 		_ = windows.CloseHandle(pi.Thread)
+		_ = windows.CloseHandle(pi.Process)
 	}()
 
-	c.cmd.Process, err = os.FindProcess(int(pi.ProcessId))
+	process, err := os.FindProcess(int(pi.ProcessId))
 	if err != nil {
 		return err
 	}
-	
-	go c.waitProcess(c.cmd.Process)
+
+	c.cmd.Process = process
+
+	wp := &windowsProcess{
+		cmdDone: make(chan interface{}),
+		proc:    process,
+		pty:     c.conPty,
+	}
+
+	go wp.waitProcess()
 
 	return nil
 }
 
+type windowsProcess struct {
+	// cmdDone protects access to cmdErr: anything reading cmdErr should read from cmdDone first.
+	cmdDone chan interface{}
+	cmdErr  error
+	proc    *os.Process
+	pty     *conPty
+}
+
+func (p *windowsProcess) waitProcess() {
+	defer close(p.cmdDone)
+	defer func() {
+		if err := winPtyConsoleCloser(p.pty); err != nil && p.cmdErr == nil {
+			p.cmdErr = err
+		}
+	}()
+
+	state, err := p.proc.Wait()
+	if err != nil {
+		p.cmdErr = err
+		return
+	}
+	if !state.Success() {
+		p.cmdErr = &exec.ExitError{ProcessState: state}
+		return
+	}
+}
+
+func (p *windowsProcess) Wait() error {
+	<-p.cmdDone
+	return p.cmdErr
+}
+
+func (p *windowsProcess) Kill() error {
+	return p.proc.Kill()
+}
+
 func (c *windowExecCmd) waitProcess(process *os.Process) {
-	_, _ = process.Wait()
-	_ = c.close()
+	defer func() {
+		if err := winPtyConsoleCloser(c.conPty); err != nil && c.cmdErr == nil {
+			c.cmdErr = err
+		}
+	}()
+
+	state, err := process.Wait()
+	if err != nil {
+		c.cmdErr = err
+		return
+	}
+
+	if !state.Success() {
+		c.cmdErr = &exec.ExitError{ProcessState: state}
+		return
+	}
+}
+
+func updateProcThreadAttribute(handle windows.Handle, attrList *windows.ProcThreadAttributeListContainer) error {
+	var err error
+
+	if err = attrList.Update(
+		_PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+		unsafe.Pointer(handle),
+		unsafe.Sizeof(handle),
+	); err != nil {
+		return fmt.Errorf("failed to update proc thread attributes for pseudo console: %w", err)
+	}
+
+	return nil
 }
