@@ -1,0 +1,340 @@
+2023/09/15 12:11:25 main
+2023/09/15 12:11:25 start
+2023/09/15 12:12:13 main
+2023/09/15 12:12:13 start
+2023/09/15 12:12:13 prep done
+2023/09/15 12:12:13 fork
+2023/09/15 12:12:13 attrs
+2023/09/15 12:12:13 create process
+2023/09/15 12:12:31 main
+2023/09/15 12:12:31 start
+2023/09/15 12:12:31 create process
+2023/09/15 12:12:31 close thread handle
+2023/09/15 12:12:53 main
+2023/09/15 12:12:53 start
+2023/09/15 12:12:53 create process
+2023/09/15 12:12:53 close thread handle
+2023/09/15 12:12:53 find process
+2023/09/15 12:12:53 process found
+2023/09/15 12:13:25 main
+2023/09/15 12:13:25 start
+2023/09/15 12:13:25 process found
+2023/09/15 12:13:25 start done
+2023/09/15 12:14:23 main
+2023/09/15 12:14:23 start
+2023/09/15 12:14:23 windowsProcess.Wait
+2023/09/15 12:14:23 windowsProcess.waitProcess
+2023/09/15 12:14:24 windowsProcess.waitProcess: setting state
+2023/09/15 12:14:24 windowsProcess.waitProcess.defer closer
+2023/09/15 12:14:59 main
+2023/09/15 12:14:59 start
+2023/09/15 12:14:59 windowsProcess.Wait
+2023/09/15 12:14:59 windowsProcess.waitProcess
+2023/09/15 12:14:59 windowsProcess.waitProcess: setting state
+2023/09/15 12:14:59 windowsProcess.waitProcess.defer closer
+2023/09/15 12:19:05 main
+2023/09/15 12:19:05 start
+2023/09/15 12:20:03 main
+2023/09/15 12:20:03 start
+2023/09/15 12:20:03 windowsProcess.Wait
+2023/09/15 12:20:03 windowsProcess.waitProcess
+2023/09/15 12:20:03 Cmd.Wait
+2023/09/15 12:20:03 waiting
+2023/09/15 12:20:35 main
+2023/09/15 12:20:35 start
+2023/09/15 12:20:35 Cmd.Wait
+2023/09/15 12:20:35 waiting
+2023/09/15 12:20:35 windowsProcess.Wait
+2023/09/15 12:20:35 windowsProcess.waitProcess
+2023/09/15 12:20:58 main
+2023/09/15 12:20:58 start
+2023/09/15 12:20:58 Cmd.Wait
+2023/09/15 12:20:58 waiting
+2023/09/15 12:20:58 windowsProcess.Wait
+2023/09/15 12:20:58 windowsProcess.waitProcess
+2023/09/15 12:20:58 is waiting
+2023/09/15 12:21:36 main
+2023/09/15 12:21:36 start
+2023/09/15 12:21:36 windowsProcess.Wait
+2023/09/15 12:21:36 windowsProcess.waitProcess
+2023/09/15 12:21:36 Cmd.Wait
+2023/09/15 12:21:36 waiting
+2023/09/15 12:23:02 main
+2023/09/15 12:23:02 start
+2023/09/15 12:23:02 windowsProcess.Wait
+2023/09/15 12:23:02 Cmd.Wait
+2023/09/15 12:23:02 windowsProcess.waitProcess
+2023/09/15 12:23:02 waiting
+2023/09/15 12:23:12 main
+2023/09/15 12:23:12 start
+2023/09/15 12:23:12 windowsProcess.Wait
+2023/09/15 12:23:12 windowsProcess.waitProcess
+2023/09/15 12:23:13 windowsProcess.waitProcess: setting state
+2023/09/15 12:23:13 windowsProcess.waitProcess.defer closer
+2023/09/15 12:23:28 main
+2023/09/15 12:23:28 start
+2023/09/15 12:23:28 windowsProcess.Wait
+2023/09/15 12:23:28 windowsProcess.waitProcess
+2023/09/15 12:23:28 windowsProcess.waitProcess: setting state
+2023/09/15 12:23:28 windowsProcess.waitProcess.defer closer
+2023/09/15 12:23:53 main
+2023/09/15 12:23:53 start
+2023/09/15 12:23:53 windowsProcess.Wait
+2023/09/15 12:23:53 windowsProcess.waitProcess
+2023/09/15 12:23:53 windowsProcess.waitProcess: setting state
+2023/09/15 12:23:53 windowsProcess.waitProcess.defer closer
+2023/09/15 12:24:16 main
+2023/09/15 12:24:16 start
+2023/09/15 12:24:16 windowsProcess.Wait
+2023/09/15 12:24:16 windowsProcess.waitProcess
+2023/09/15 12:24:16 windowsProcess.waitProcess: setting state
+2023/09/15 12:24:16 windowsProcess.waitProcess.defer closer
+2023/09/15 12:24:32 main
+2023/09/15 12:24:32 start
+2023/09/15 12:24:32 windowsProcess.Wait
+2023/09/15 12:24:32 windowsProcess.waitProcess
+2023/09/15 12:24:32 Cmd.Wait
+2023/09/15 12:24:32 waiting
+2023/09/15 12:31:50 main
+2023/09/15 12:31:50 start
+2023/09/15 12:31:50 windowsProcess.Wait
+2023/09/15 12:31:50 Cmd.Wait
+2023/09/15 12:31:50 windowsProcess.waitProcess
+2023/09/15 12:31:50 waiting
+2023/09/15 12:32:00 main
+2023/09/15 12:32:00 start
+2023/09/15 12:32:00 windowsProcess.Wait
+2023/09/15 12:32:00 windowsProcess.waitProcess
+2023/09/15 12:32:00 windowsProcess.waitProcess: setting state
+2023/09/15 12:32:00 windowsProcess.waitProcess.defer closer
+2023/09/15 12:32:41 main
+2023/09/15 12:32:41 start
+2023/09/15 12:32:41 windowsProcess.Wait
+2023/09/15 12:32:41 windowsProcess.waitProcess
+2023/09/15 12:32:41 windowsProcess.waitProcess: setting state
+2023/09/15 12:32:41 windowsProcess.waitProcess.defer closer
+2023/09/15 12:32:41 closing chan
+2023/09/15 12:34:17 main
+2023/09/15 12:34:17 start
+2023/09/15 12:34:17 windowsProcess.Wait
+2023/09/15 12:34:17 windowsProcess.waitProcess
+2023/09/15 12:34:17 windowsProcess.waitProcess: setting state
+2023/09/15 12:34:17 windowsProcess.waitProcess.defer closer
+2023/09/15 12:34:17 Cmd.Wait
+2023/09/15 12:34:17 waiting
+2023/09/15 12:34:17 closing chan
+2023/09/15 12:34:17 wait done
+2023/09/15 12:34:38 main
+2023/09/15 12:34:38 start
+2023/09/15 12:34:38 windowsProcess.Wait
+2023/09/15 12:34:38 windowsProcess.waitProcess
+2023/09/15 12:34:38 windowsProcess.waitProcess: setting state
+2023/09/15 12:34:38 windowsProcess.waitProcess.defer closer
+2023/09/15 12:34:38 Cmd.Wait
+2023/09/15 12:34:38 waiting
+2023/09/15 12:34:38 closing chan
+2023/09/15 12:34:38 wait done
+2023/09/15 12:35:17 main
+2023/09/15 12:35:17 starting ssh server on port 2222...
+2023/09/15 12:35:31 start
+2023/09/15 12:35:31 windowsProcess.Wait
+2023/09/15 12:35:31 windowsProcess.waitProcess
+2023/09/15 12:35:35 windowsProcess.waitProcess: setting state
+2023/09/15 12:35:35 windowsProcess.waitProcess.defer closer
+2023/09/15 12:35:35 Cmd.Wait
+2023/09/15 12:35:35 waiting
+2023/09/15 12:35:35 closing chan
+2023/09/15 12:35:35 wait done
+2023/09/15 12:36:07 main
+2023/09/15 12:36:07 starting ssh server on port 2222...
+2023/09/15 12:36:10 start
+2023/09/15 12:36:41 main
+2023/09/15 12:36:41 starting ssh server on port 2222...
+2023/09/15 12:36:44 start
+2023/09/15 12:36:44 windowsProcess.Wait
+2023/09/15 12:36:44 windowsProcess.waitProcess
+2023/09/15 12:36:45 windowsProcess.waitProcess: setting state
+2023/09/15 12:36:45 windowsProcess.waitProcess.defer closer
+2023/09/15 12:36:45 Cmd.Wait
+2023/09/15 12:36:45 waiting
+2023/09/15 12:36:45 closing chan
+2023/09/15 12:36:45 wait done
+2023/09/15 12:37:24 main
+2023/09/15 12:37:24 starting ssh server on port 2222...
+2023/09/15 12:37:28 start
+2023/09/15 12:37:28 windowsProcess.Wait
+2023/09/15 12:37:28 windowsProcess.waitProcess
+2023/09/15 12:37:29 windowsProcess.waitProcess: setting state
+2023/09/15 12:37:29 windowsProcess.waitProcess.defer closer
+2023/09/15 12:37:29 Cmd.Wait
+2023/09/15 12:37:29 waiting
+2023/09/15 12:37:29 closing chan
+2023/09/15 12:37:29 wait done
+2023/09/15 12:37:31 start
+2023/09/15 12:37:31 windowsProcess.Wait
+2023/09/15 12:37:31 windowsProcess.waitProcess
+2023/09/15 12:37:32 windowsProcess.waitProcess: setting state
+2023/09/15 12:37:32 windowsProcess.waitProcess.defer closer
+2023/09/15 12:37:32 Cmd.Wait
+2023/09/15 12:37:32 waiting
+2023/09/15 12:37:32 closing chan
+2023/09/15 12:37:32 wait done
+2023/09/15 12:37:34 start
+2023/09/15 12:37:34 windowsProcess.Wait
+2023/09/15 12:37:34 windowsProcess.waitProcess
+2023/09/15 12:37:35 windowsProcess.waitProcess: setting state
+2023/09/15 12:37:35 windowsProcess.waitProcess.defer closer
+2023/09/15 12:37:35 Cmd.Wait
+2023/09/15 12:37:35 waiting
+2023/09/15 12:37:35 closing chan
+2023/09/15 12:37:35 wait done
+2023/09/15 12:39:01 main
+2023/09/15 12:39:01 starting ssh server on port 2222...
+2023/09/15 12:39:05 start
+2023/09/15 12:39:05 windowsProcess.Wait
+2023/09/15 12:39:05 windowsProcess.waitProcess
+2023/09/15 12:39:07 windowsProcess.waitProcess: setting state
+2023/09/15 12:39:07 windowsProcess.waitProcess.defer closer
+2023/09/15 12:39:07 Cmd.Wait
+2023/09/15 12:39:07 waiting
+2023/09/15 12:39:07 closing chan
+2023/09/15 12:39:07 wait done
+2023/09/15 12:39:16 main
+2023/09/15 12:39:16 starting ssh server on port 2222...
+2023/09/15 12:39:17 start
+2023/09/15 12:39:17 windowsProcess.Wait
+2023/09/15 12:39:17 windowsProcess.waitProcess
+2023/09/15 12:39:19 windowsProcess.waitProcess: setting state
+2023/09/15 12:39:19 windowsProcess.waitProcess.defer closer
+2023/09/15 12:39:19 Cmd.Wait
+2023/09/15 12:39:19 waiting
+2023/09/15 12:39:19 closing chan
+2023/09/15 12:39:19 wait done
+2023/09/15 12:39:25 main
+2023/09/15 12:39:25 starting ssh server on port 2222...
+2023/09/15 12:39:29 start
+2023/09/15 12:39:29 windowsProcess.Wait
+2023/09/15 12:39:29 windowsProcess.waitProcess
+2023/09/15 12:39:30 windowsProcess.waitProcess: setting state
+2023/09/15 12:39:30 windowsProcess.waitProcess.defer closer
+2023/09/15 12:39:30 Cmd.Wait
+2023/09/15 12:39:30 waiting
+2023/09/15 12:39:30 closing chan
+2023/09/15 12:39:30 wait done
+2023/09/15 12:39:53 main
+2023/09/15 12:39:53 starting ssh server on port 2222...
+2023/09/15 12:39:53 start
+2023/09/15 12:39:53 windowsProcess.Wait
+2023/09/15 12:39:53 windowsProcess.waitProcess
+2023/09/15 12:39:55 windowsProcess.waitProcess: setting state
+2023/09/15 12:39:55 windowsProcess.waitProcess.defer closer
+2023/09/15 12:39:55 Cmd.Wait
+2023/09/15 12:39:55 waiting
+2023/09/15 12:39:55 closing chan
+2023/09/15 12:39:55 wait done
+2023/09/15 12:40:00 start
+2023/09/15 12:40:00 windowsProcess.Wait
+2023/09/15 12:40:00 windowsProcess.waitProcess
+2023/09/15 12:40:01 windowsProcess.waitProcess: setting state
+2023/09/15 12:40:01 windowsProcess.waitProcess.defer closer
+2023/09/15 12:40:01 Cmd.Wait
+2023/09/15 12:40:01 waiting
+2023/09/15 12:40:01 closing chan
+2023/09/15 12:40:01 wait done
+2023/09/15 12:40:01 exit status 1
+2023/09/15 12:40:02 start
+2023/09/15 12:40:02 windowsProcess.Wait
+2023/09/15 12:40:02 windowsProcess.waitProcess
+2023/09/15 12:40:05 windowsProcess.waitProcess: setting state
+2023/09/15 12:40:05 windowsProcess.waitProcess.defer closer
+2023/09/15 12:40:05 Cmd.Wait
+2023/09/15 12:40:05 waiting
+2023/09/15 12:40:05 closing chan
+2023/09/15 12:40:05 wait done
+2023/09/15 12:40:05 exit status 1
+2023/09/15 12:40:06 start
+2023/09/15 12:40:06 windowsProcess.Wait
+2023/09/15 12:40:06 windowsProcess.waitProcess
+2023/09/15 12:40:07 windowsProcess.waitProcess: setting state
+2023/09/15 12:40:07 windowsProcess.waitProcess.defer closer
+2023/09/15 12:40:07 Cmd.Wait
+2023/09/15 12:40:07 waiting
+2023/09/15 12:40:07 closing chan
+2023/09/15 12:40:07 wait done
+2023/09/15 12:40:07 exit status 1
+2023/09/15 12:40:38 start
+2023/09/15 12:40:38 windowsProcess.Wait
+2023/09/15 12:40:38 windowsProcess.waitProcess
+2023/09/15 12:40:41 windowsProcess.waitProcess: setting state
+2023/09/15 12:40:41 windowsProcess.waitProcess.defer closer
+2023/09/15 12:40:41 Cmd.Wait
+2023/09/15 12:40:41 waiting
+2023/09/15 12:40:41 closing chan
+2023/09/15 12:40:41 wait done
+2023/09/15 12:40:44 start
+2023/09/15 12:40:44 windowsProcess.Wait
+2023/09/15 12:40:44 windowsProcess.waitProcess
+2023/09/15 12:40:46 windowsProcess.waitProcess: setting state
+2023/09/15 12:40:46 windowsProcess.waitProcess.defer closer
+2023/09/15 12:40:46 Cmd.Wait
+2023/09/15 12:40:46 waiting
+2023/09/15 12:40:46 closing chan
+2023/09/15 12:40:46 wait done
+2023/09/15 12:42:56 main
+2023/09/15 12:42:56 start
+2023/09/15 12:42:56 windowsProcess.Wait
+2023/09/15 12:42:56 windowsProcess.waitProcess
+2023/09/15 12:42:56 windowsProcess.waitProcess: setting state
+2023/09/15 12:42:56 windowsProcess.waitProcess.defer closer
+2023/09/15 12:42:56 Cmd.Wait
+2023/09/15 12:42:56 waiting
+2023/09/15 12:42:56 wait done
+2023/09/15 12:43:43 main
+2023/09/15 12:43:43 start
+2023/09/15 12:43:43 Cmd.Wait
+2023/09/15 12:43:47 main
+2023/09/15 12:43:47 starting ssh server on port 2222...
+2023/09/15 12:43:48 start
+2023/09/15 12:43:51 Cmd.Wait
+2023/09/15 12:43:59 start
+2023/09/15 12:44:03 Cmd.Wait
+2023/09/15 12:44:24 main
+2023/09/15 12:44:24 starting ssh server on port 2222...
+2023/09/15 12:44:25 start
+2023/09/15 12:44:35 start
+2023/09/15 12:49:53 main
+2023/09/15 13:19:25 main
+2023/09/15 13:19:25 starting ssh server on port 2222...
+2023/09/15 13:19:38 exit status 1
+2023/09/15 13:19:40 exit status 1
+2023/09/15 13:19:41 exit status 1
+2023/09/15 14:17:08 main
+2023/09/15 14:17:08 starting ssh server on port 2222...
+2023/09/15 14:19:56 main
+2023/09/15 14:19:56 starting ssh server on port 2222...
+2023/09/15 14:22:10 main
+2023/09/15 14:22:10 starting ssh server on port 2222...
+2023/09/15 14:22:41 main
+2023/09/15 14:22:41 starting ssh server on port 2222...
+2023/09/15 14:22:45 main
+2023/09/15 14:22:45 starting ssh server on port 2222...
+2023/09/15 19:19:17 here
+2023/09/15 19:21:03 here
+2023/09/15 19:21:19 here
+2023/09/15 19:21:58 The parameter is incorrect.
+2023/09/15 19:22:09 The parameter is incorrect.
+2023/09/15 19:22:18 The parameter is incorrect.
+2023/09/15 19:22:24 here
+2023/09/15 19:22:24 The parameter is incorrect.
+2023/09/15 19:23:00 here
+2023/09/15 19:23:00 The parameter is incorrect.
+2023/09/15 19:23:09 here
+2023/09/15 19:23:09 The parameter is incorrect.
+2023/09/15 19:23:19 The parameter is incorrect.
+2023/09/15 19:23:26 The parameter is incorrect.
+2023/09/15 19:23:33 The parameter is incorrect.
+2023/09/15 19:23:39 The parameter is incorrect.
+2023/09/15 19:23:44 here
+2023/09/15 19:23:44 The parameter is incorrect.
+2023/09/15 19:24:06 here
+2023/09/15 19:24:06 The parameter is incorrect.

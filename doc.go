@@ -10,6 +10,8 @@ import (
 // available on the current platform.
 var ErrUnsupported = errors.New("unsupported")
 
+var ErrClosed = errors.New("pty closed")
+
 // Open a pty and its corresponding tty.
 func Open() (File, File, error) {
 	return open()

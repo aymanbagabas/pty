@@ -3,12 +3,13 @@ package main
 import (
 	"io"
 	"os"
+	"os/exec"
 
 	"github.com/creack/pty"
 )
 
 func main() {
-	c := pty.Command("grep", "--color=auto", "bar")
+	c := exec.Command("grep", "--color=auto", "bar")
 	f, err := pty.Start(c)
 	if err != nil {
 		panic(err)

@@ -4,59 +4,28 @@
 package pty
 
 import (
-	"syscall"
-	"unsafe"
+	"errors"
+
+	"golang.org/x/sys/windows"
 )
-
-// types from golang.org/x/sys/windows
-// copy of https://pkg.go.dev/golang.org/x/sys/windows#Coord
-type windowsCoord struct {
-	X int16
-	Y int16
-}
-
-// copy of https://pkg.go.dev/golang.org/x/sys/windows#SmallRect
-type windowsSmallRect struct {
-	Left   int16
-	Top    int16
-	Right  int16
-	Bottom int16
-}
-
-// copy of https://pkg.go.dev/golang.org/x/sys/windows#ConsoleScreenBufferInfo
-type windowsConsoleScreenBufferInfo struct {
-	Size              windowsCoord
-	CursorPosition    windowsCoord
-	Attributes        uint16
-	Window            windowsSmallRect
-	MaximumWindowSize windowsCoord
-}
-
-func (c windowsCoord) Pack() uintptr {
-	return uintptr((int32(c.Y) << 16) | int32(c.X))
-}
 
 // Setsize resizes t to ws.
 func Setsize(t File, ws *Winsize) error {
-	var r0 uintptr
-	var err error
-
-	err = resizePseudoConsole.Find()
-	if err != nil {
-		return err
+	pty, ok := t.(*conPty)
+	if !ok {
+		return errors.New("not a pty")
 	}
 
-	r0, _, err = resizePseudoConsole.Call(
-		t.Fd(),
-		(windowsCoord{X: int16(ws.Cols), Y: int16(ws.Rows)}).Pack(),
-	)
-	if int32(r0) < 0 {
-		if r0&0x1fff0000 == 0x00070000 {
-			r0 &= 0xffff
-		}
+	pty.mtx.RLock()
+	defer pty.mtx.RUnlock()
 
-		// S_OK: 0
-		return syscall.Errno(r0)
+	if pty.handle == 0 {
+		return ErrClosed
+	}
+
+	coord := windows.Coord{X: int16(ws.Cols), Y: int16(ws.Rows)}
+	if err := windows.ResizePseudoConsole(pty.handle, coord); err != nil {
+		return err
 	}
 
 	return nil
@@ -64,22 +33,21 @@ func Setsize(t File, ws *Winsize) error {
 
 // GetsizeFull returns the full terminal size description.
 func GetsizeFull(t File) (size *Winsize, err error) {
-	err = getConsoleScreenBufferInfo.Find()
-	if err != nil {
-		return nil, err
+	pty, ok := t.(*conPty)
+	if !ok {
+		return nil, errors.New("not a pty")
 	}
 
-	var info windowsConsoleScreenBufferInfo
-	var r0 uintptr
+	pty.mtx.RLock()
+	defer pty.mtx.RUnlock()
 
-	r0, _, err = getConsoleScreenBufferInfo.Call(t.Fd(), uintptr(unsafe.Pointer(&info)))
-	if int32(r0) < 0 {
-		if r0&0x1fff0000 == 0x00070000 {
-			r0 &= 0xffff
-		}
+	if pty.handle == 0 {
+		return nil, ErrClosed
+	}
 
-		// S_OK: 0
-		return nil, syscall.Errno(r0)
+	var info windows.ConsoleScreenBufferInfo
+	if err := windows.GetConsoleScreenBufferInfo(windows.Handle(t.Fd()), &info); err != nil {
+		return nil, err
 	}
 
 	return &Winsize{
@@ -87,3 +55,59 @@ func GetsizeFull(t File) (size *Winsize, err error) {
 		Cols: uint16(info.Window.Right - info.Window.Left + 1),
 	}, nil
 }
+
+// GetsizeFull returns the full terminal size description.
+// func GetsizeFull(t File) (size *Winsize, err error) {
+// 	pty, ok := t.(*conPty)
+// 	if !ok {
+// 		return nil, errors.New("not a pty")
+// 	}
+
+// 	pty.mtx.RLock()
+// 	defer pty.mtx.RUnlock()
+
+// 	if pty.handle == 0 {
+// 		return nil, ErrClosed
+// 	}
+
+// 	var info windows.ConsoleScreenBufferInfo
+// 	if err := getConsoleScreenBufferInfo(windows.Handle(t.Fd()), &info); err != nil {
+// 		return nil, err
+// 	}
+
+// 	return &Winsize{
+// 		Rows: uint16(info.Window.Bottom - info.Window.Top + 1),
+// 		Cols: uint16(info.Window.Right - info.Window.Left + 1),
+// 	}, nil
+// }
+
+// var (
+// 	kernel32DLL                    = windows.NewLazyDLL("kernel32.dll")
+// 	procGetConsoleScreenBufferInfo = kernel32DLL.NewProc("GetConsoleScreenBufferInfo")
+// )
+
+// // GetsizeFull returns the full terminal size description.
+// func GetsizeFull(t File) (size *Winsize, err error) {
+// 	err = procGetConsoleScreenBufferInfo.Find()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	var info windows.ConsoleScreenBufferInfo
+// 	var r0 uintptr
+
+// 	r0, _, err = procGetConsoleScreenBufferInfo.Call(t.Fd(), uintptr(unsafe.Pointer(&info)))
+// 	if int32(r0) < 0 {
+// 		if r0&0x1fff0000 == 0x00070000 {
+// 			r0 &= 0xffff
+// 		}
+
+// 		// S_OK: 0
+// 		return nil, syscall.Errno(r0)
+// 	}
+
+// 	return &Winsize{
+// 		Rows: uint16(info.Window.Bottom - info.Window.Top + 1),
+// 		Cols: uint16(info.Window.Right - info.Window.Left + 1),
+// 	}, nil
+// }

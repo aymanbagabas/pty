@@ -168,10 +168,8 @@ func (c *windowExecCmd) Start() error {
 		return fmt.Errorf("failed to initialize process thread attribute list: %w", err)
 	}
 
-	if c.conPty != nil {
-		if err = updateProcThreadAttribute(c.conPty.handle, c.attrList); err != nil {
-			return err
-		}
+	if err = c.conPty.updateProcThreadAttribute(c.attrList); err != nil {
+		return err
 	}
 
 	siEx.ProcThreadAttributeList = c.attrList.List()
@@ -243,7 +241,7 @@ type windowsProcess struct {
 func (p *windowsProcess) waitProcess() {
 	defer close(p.cmdDone)
 	defer func() {
-		if err := winPtyConsoleCloser(p.pty); err != nil && p.cmdErr == nil {
+		if err := p.pty.Close(); err != nil && p.cmdErr == nil {
 			p.cmdErr = err
 		}
 	}()
@@ -270,7 +268,7 @@ func (p *windowsProcess) Kill() error {
 
 func (c *windowExecCmd) waitProcess(process *os.Process) {
 	defer func() {
-		if err := winPtyConsoleCloser(c.conPty); err != nil && c.cmdErr == nil {
+		if err := c.conPty.Close(); err != nil && c.cmdErr == nil {
 			c.cmdErr = err
 		}
 	}()
@@ -287,13 +285,13 @@ func (c *windowExecCmd) waitProcess(process *os.Process) {
 	}
 }
 
-func updateProcThreadAttribute(handle windows.Handle, attrList *windows.ProcThreadAttributeListContainer) error {
+func (p *conPty) updateProcThreadAttribute(attrList *windows.ProcThreadAttributeListContainer) error {
 	var err error
 
 	if err = attrList.Update(
-		_PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-		unsafe.Pointer(handle),
-		unsafe.Sizeof(handle),
+		windows.PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+		unsafe.Pointer(p.handle),
+		unsafe.Sizeof(p.handle),
 	); err != nil {
 		return fmt.Errorf("failed to update proc thread attributes for pseudo console: %w", err)
 	}

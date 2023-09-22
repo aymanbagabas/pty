@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 
 	"github.com/creack/pty"
@@ -12,13 +13,14 @@ import (
 
 func test() error {
 	// Create arbitrary command.
-	c := pty.Command("bash")
+	c := exec.Command("bash")
 
 	// Start the command with a pty.
 	ptmx, err := pty.Start(c)
 	if err != nil {
 		return err
 	}
+
 	// Make sure to close the pty at the end.
 	defer func() { _ = ptmx.Close() }() // Best effort.
 

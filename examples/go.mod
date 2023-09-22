@@ -4,6 +4,8 @@ go 1.20
 
 replace github.com/creack/pty => ../
 
+replace golang.org/x/sys => ../../../golang/sys
+
 require (
 	github.com/charmbracelet/ssh v0.0.0-20230822194956-1a051f898e09
 	github.com/creack/pty v1.1.18
