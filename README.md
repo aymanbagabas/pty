@@ -2,6 +2,8 @@
 
 Pty is a Go package for using unix pseudo-terminals.
 
+On Windows, with Go 1.28 or later, `Start`, `StartWithSize`, and `StartWithAttrs` use the Windows pseudo console (ConPTY). See [Windows](#windows).
+
 ## Install
 
 ```sh
@@ -105,3 +107,19 @@ func main() {
         }
 }
 ```
+
+## Windows
+
+Windows support uses the [pseudo console (ConPTY)](https://learn.microsoft.com/en-us/windows/console/creating-a-pseudoconsole-session). It needs Windows 10 version 1809 or later and Go 1.28 or later, which adds `syscall.SysProcAttr.Console`. With older Go versions, the functions return `ErrUnsupported`.
+
+`Start` returns one `*os.File` that reads the console output and writes the console input, as on Unix. These are the differences:
+
+- The process uses the console for its standard input, output, and error. `c.Stdin`, `c.Stdout`, and `c.Stderr` have no effect.
+- When the process exits, the console closes. `Read` returns the remaining output, then `io.EOF`. Windows also ends the other processes that are attached to the console.
+- `Close` on the file closes the console.
+- `Setsize`, `Getsize`, and `GetsizeFull` work only on a file from `Start`. Windows has no `SIGWINCH`, so poll for size changes or read them from the console input events.
+- `Open` returns `ErrUnsupported`, because a Windows pseudo console has no tty file.
+
+The output contains virtual terminal sequences. To use the console directly, for example with your own process creation, use the [`conpty`](https://pkg.go.dev/github.com/creack/pty/conpty) package.
+
+See [examples/command](examples/command/main.go) for a program that works on Unix and Windows.

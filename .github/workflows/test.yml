@@ -58,3 +58,49 @@ jobs:
       - if: ${{ matrix.go_version != '1.6.x' }}
         name: Many Tests
         run: go test -count=100 -timeout=30s
+
+  windows:
+    name: "Test go ${{ matrix.go_version }} on windows-latest"
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        go_version:
+          # Go 1.28 adds syscall.SysProcAttr.Console, which the ConPTY support needs.
+          # Until its release, use tip. Stable tests the conpty package and the fallback.
+          - stable
+          - tip
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Set up Go stable
+        uses: actions/setup-go@v4
+        with:
+          go-version: stable
+          check-latest: true
+
+      - if: ${{ matrix.go_version == 'tip' }}
+        name: Set up Go tip
+        run: |
+          go install golang.org/dl/gotip@latest
+          gotip download
+          echo "$HOME/sdk/gotip/bin" >> "$GITHUB_PATH"
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Vet
+        run: go version && go vet ./...
+
+      - name: Single Test
+        run: go test -v ./...
+
+      - name: Race Tests
+        run: go test -race -count=20 -timeout=10m ./...
+
+      - if: ${{ matrix.go_version == 'tip' }}
+        name: Run example
+        run: go run ./examples/command

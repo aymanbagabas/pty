@@ -1,16 +1,11 @@
-//go:build windows
-// +build windows
+//go:build windows && !go1.28
+// +build windows,!go1.28
 
 package pty
 
 import (
 	"os"
 )
-
-// Winsize is a dummy struct to enable compilation on unsupported platforms.
-type Winsize struct {
-	Rows, Cols, X, Y uint16
-}
 
 // Setsize resizes t to s.
 func Setsize(*os.File, *Winsize) error {

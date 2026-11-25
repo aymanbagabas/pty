@@ -1,3 +1,6 @@
+//go:build !windows || !go1.28
+// +build !windows !go1.28
+
 package pty
 
 import (

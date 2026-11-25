@@ -33,8 +33,8 @@ cross openbsd   amd64 386 arm arm64
 cross dragonfly amd64
 cross solaris   amd64
 
-# Not expected to work but should still compile.
-cross windows amd64 386 arm
+# Windows support needs Go 1.28 (ConPTY). Older Go versions should still compile.
+cross windows amd64 386 arm64
 
 # TODO: Fix compilation error on openbsd/arm.
 # TODO: Merge the solaris PR.
