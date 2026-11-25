@@ -114,7 +114,7 @@ Windows support uses the [pseudo console (ConPTY)](https://learn.microsoft.com/e
 
 `Start` returns one `*os.File` that reads the console output and writes the console input, as on Unix. These are the differences:
 
-- The process uses the console for its standard input, output, and error. `c.Stdin`, `c.Stdout`, and `c.Stderr` have no effect.
+- The process uses the console for its standard input, output, and error. `Start` sets `c.Stdin`, `c.Stdout`, and `c.Stderr` to `nil`.
 - When the process exits, the console closes. `Read` returns the remaining output, then `io.EOF`. Windows also ends the other processes that are attached to the console.
 - `Close` on the file closes the console.
 - `Setsize`, `Getsize`, and `GetsizeFull` work only on a file from `Start`. Windows has no `SIGWINCH`, so poll for size changes or read them from the console input events.

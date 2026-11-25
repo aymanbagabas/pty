@@ -71,8 +71,8 @@ func StartWithSize(c *exec.Cmd, ws *Winsize) (*os.File, error) {
 //
 // StartWithAttrs sets c.SysProcAttr to a copy of attrs with the Console
 // field set. It does not change attrs. The process uses the console for its
-// standard input, output, and error, so c.Stdin, c.Stdout, and c.Stderr have
-// no effect.
+// standard input, output, and error, so StartWithAttrs sets c.Stdin, c.Stdout,
+// and c.Stderr to nil.
 //
 // When the process exits, the console closes. Read then returns the remaining
 // output, then io.EOF. Windows also ends other processes that are attached to
@@ -106,6 +106,9 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (*os.F
 	}
 	sys.Console = cpty.Handle()
 	c.SysProcAttr = sys
+	// The process does not use these. If they stay set, os/exec still copies
+	// them in goroutines, and a blocked copy makes Wait block.
+	c.Stdin, c.Stdout, c.Stderr = nil, nil, nil
 	if err := c.Start(); err != nil {
 		s.close()
 		_ = s.file.Close()
@@ -117,6 +120,7 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (*os.F
 	process, err := syscall.OpenProcess(syscall.SYNCHRONIZE, false, uint32(c.Process.Pid))
 	if err != nil {
 		_ = c.Process.Kill()
+		_ = c.Wait()
 		s.close()
 		_ = s.file.Close()
 		return nil, os.NewSyscallError("OpenProcess", err)
