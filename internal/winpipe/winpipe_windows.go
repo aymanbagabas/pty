@@ -18,7 +18,6 @@ import (
 const (
 	Inbound  = 0x1 // PIPE_ACCESS_INBOUND: the server reads, the client writes.
 	Outbound = 0x2 // PIPE_ACCESS_OUTBOUND: the server writes, the client reads.
-	Duplex   = 0x3 // PIPE_ACCESS_DUPLEX: both ends read and write.
 )
 
 const (
@@ -34,16 +33,12 @@ var (
 )
 
 // New creates a named pipe with a single instance and connects to it.
-// The server end always uses overlapped I/O. The client end uses overlapped
-// I/O only if clientOverlapped is true.
-// Neither handle is inheritable.
-func New(access uint32, clientOverlapped bool) (server, client syscall.Handle, err error) {
-	var clientAccess uint32
-	if access&Inbound != 0 {
-		clientAccess |= syscall.GENERIC_WRITE
-	}
-	if access&Outbound != 0 {
-		clientAccess |= syscall.GENERIC_READ
+// The server end uses overlapped I/O, and the client end uses synchronous
+// I/O. Neither handle is inheritable.
+func New(access uint32) (server, client syscall.Handle, err error) {
+	var clientAccess uint32 = syscall.GENERIC_READ
+	if access == Inbound {
+		clientAccess = syscall.GENERIC_WRITE
 	}
 
 	var nonce [8]byte
@@ -73,11 +68,7 @@ func New(access uint32, clientOverlapped bool) (server, client syscall.Handle, e
 		return 0, 0, os.NewSyscallError("CreateNamedPipe", e)
 	}
 
-	var flags uint32
-	if clientOverlapped {
-		flags = fileFlagOverlapped
-	}
-	client, err = syscall.CreateFile(namep, clientAccess, 0, nil, syscall.OPEN_EXISTING, flags, 0)
+	client, err = syscall.CreateFile(namep, clientAccess, 0, nil, syscall.OPEN_EXISTING, 0, 0)
 	if err != nil {
 		_ = syscall.CloseHandle(server)
 		return 0, 0, os.NewSyscallError("CreateFile", err)

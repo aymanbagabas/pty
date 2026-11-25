@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/creack/pty/internal/winpipe"
+	"github.com/creack/pty/v2/internal/winpipe"
 )
 
 var (
@@ -49,11 +49,11 @@ func New(cols, rows int) (*ConPty, error) {
 		return nil, err
 	}
 
-	inServer, inClient, err := winpipe.New(winpipe.Outbound, false)
+	inServer, inClient, err := winpipe.New(winpipe.Outbound)
 	if err != nil {
 		return nil, err
 	}
-	outServer, outClient, err := winpipe.New(winpipe.Inbound, false)
+	outServer, outClient, err := winpipe.New(winpipe.Inbound)
 	if err != nil {
 		_ = syscall.CloseHandle(inServer)
 		_ = syscall.CloseHandle(inClient)
@@ -135,8 +135,8 @@ func (c *ConPty) Resize(cols, rows int) error {
 }
 
 // CloseConsole closes the pseudo console and keeps the pipes open.
-// Windows ends the processes that are attached to the console. The console
-// then writes its last output and closes its end of the output pipe, so Read
+// Windows ends the processes that are attached to the console (see Close).
+// The console then writes its last output and closes its end of the output pipe, so Read
 // returns io.EOF after the remaining output.
 //
 // Before Windows 11 24H2, CloseConsole waits until the remaining output is
@@ -153,7 +153,11 @@ func (c *ConPty) CloseConsole() {
 }
 
 // Close closes the pipes and the pseudo console. Remaining output is lost.
-// Windows ends the processes that are attached to the console.
+//
+// Windows ends the processes that are attached to the console. But if the
+// console closes while a new process attaches to it, the process can stay
+// alive without a console. Terminate the process if it does not exit.
+//
 // Close after the first call has no effect and returns nil.
 func (c *ConPty) Close() error {
 	c.mu.Lock()

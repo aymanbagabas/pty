@@ -3,16 +3,12 @@
 
 package pty
 
-import (
-	"os"
-)
-
 // Setsize resizes t to s.
-func Setsize(*os.File, *Winsize) error {
+func Setsize(Pty, *Winsize) error {
 	return ErrUnsupported
 }
 
 // GetsizeFull returns the full terminal size description.
-func GetsizeFull(*os.File) (*Winsize, error) {
+func GetsizeFull(Pty) (*Winsize, error) {
 	return nil, ErrUnsupported
 }

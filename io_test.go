@@ -95,10 +95,11 @@ func prepare(t *testing.T) (ptmx *os.File, done func()) {
 	glTestFdLock.Lock()
 	t.Cleanup(glTestFdLock.Unlock)
 
-	ptmx, pts, err := Open()
+	p, pts, err := Open()
 	if err != nil {
 		t.Fatalf("Error: open: %s.\n", err)
 	}
+	ptmx = p.(*os.File)
 	_ptmx := ptmx
 	t.Cleanup(func() { _ = _ptmx.Close() })
 	t.Cleanup(func() { _ = pts.Close() })

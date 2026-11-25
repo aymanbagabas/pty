@@ -18,18 +18,25 @@ type Winsize struct {
 }
 
 // Setsize resizes t to s.
-func Setsize(t *os.File, ws *Winsize) error {
+func Setsize(t Pty, ws *Winsize) error {
 	//nolint:gosec // Expected unsafe pointer for Syscall call.
-	return ioctl(t, syscall.TIOCSWINSZ, unsafe.Pointer(ws))
+	return ioctlPty(t, syscall.TIOCSWINSZ, unsafe.Pointer(ws))
 }
 
 // GetsizeFull returns the full terminal size description.
-func GetsizeFull(t *os.File) (size *Winsize, err error) {
+func GetsizeFull(t Pty) (size *Winsize, err error) {
 	var ws Winsize
 
 	//nolint:gosec // Expected unsafe pointer for Syscall call.
-	if err := ioctl(t, syscall.TIOCGWINSZ, unsafe.Pointer(&ws)); err != nil {
+	if err := ioctlPty(t, syscall.TIOCGWINSZ, unsafe.Pointer(&ws)); err != nil {
 		return nil, err
 	}
 	return &ws, nil
+}
+
+func ioctlPty(t Pty, cmd uintptr, ptr unsafe.Pointer) error {
+	if f, ok := t.(*os.File); ok {
+		return ioctl(f, cmd, ptr)
+	}
+	return ioctlInner(t.Fd(), cmd, ptr)
 }
