@@ -142,9 +142,11 @@ func TestCloseWindows(t *testing.T) {
 	go func() { done <- c.Wait() }()
 	select {
 	case err := <-done:
+		// The exit status depends on how far the process got. For example,
+		// it is STATUS_DLL_INIT_FAILED if the console closes during startup.
 		var exitErr *exec.ExitError
-		if !errors.As(err, &exitErr) || uint32(exitErr.ExitCode()) != controlCExit {
-			t.Errorf("Wait = %v, want exit status %#x", err, controlCExit)
+		if !errors.As(err, &exitErr) {
+			t.Errorf("Wait = %v, want an exit error", err)
 		}
 	case <-time.After(windowsTimeout):
 		_ = c.Process.Kill()
