@@ -126,6 +126,15 @@ func TestCloseWindows(t *testing.T) {
 		t.Errorf("second Close = %v, want %v", err, os.ErrClosed)
 	}
 
+	// The session ends when the bridge sees that the file is closed.
+	deadline := time.Now().Add(windowsTimeout)
+	for Setsize(f, &Winsize{Rows: 10, Cols: 10}) == nil {
+		if time.Now().After(deadline) {
+			t.Fatal("session did not end after Close")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
 	done := make(chan error, 1)
 	go func() { done <- c.Wait() }()
 	select {
@@ -133,10 +142,6 @@ func TestCloseWindows(t *testing.T) {
 	case <-time.After(windowsTimeout):
 		_ = c.Process.Kill()
 		t.Fatal("process did not exit after Close")
-	}
-
-	if err := Setsize(f, &Winsize{Rows: 10, Cols: 10}); !errors.Is(err, ErrUnsupported) {
-		t.Errorf("Setsize after Close = %v, want %v", err, ErrUnsupported)
 	}
 }
 
@@ -157,6 +162,30 @@ func TestStartWithAttrsWindows(t *testing.T) {
 	}
 	readAllWindows(t, f)
 	noError(t, c.Wait(), "Wait")
+}
+
+// A set c.Stdin that blocks must not make Wait block.
+func TestStartWindowsIgnoresStdin(t *testing.T) {
+	t.Parallel()
+
+	r, w := io.Pipe()
+	defer func() { _ = w.Close() }()
+	c := exec.Command("cmd.exe", "/d", "/c", "exit")
+	c.Stdin = r
+	f := startWindows(t, c, nil)
+	if c.Stdin != nil {
+		t.Error("Start did not clear c.Stdin")
+	}
+	readAllWindows(t, f)
+
+	done := make(chan error, 1)
+	go func() { done <- c.Wait() }()
+	select {
+	case err := <-done:
+		noError(t, err, "Wait")
+	case <-time.After(windowsTimeout):
+		t.Fatal("Wait blocked on c.Stdin")
+	}
 }
 
 func TestStartWindowsBadCommand(t *testing.T) {

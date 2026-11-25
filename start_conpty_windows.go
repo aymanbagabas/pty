@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/creack/pty/conpty"
 	"github.com/creack/pty/internal/winpipe"
@@ -16,6 +17,15 @@ import (
 
 // The size of a new pseudo console if the caller does not give one.
 const defaultCols, defaultRows = 80, 25
+
+// After the session closes, the process gets this much time to exit before
+// it is terminated. Windows gives the same time to a process that gets
+// CTRL_CLOSE_EVENT.
+const closeTimeout = 5 * time.Second
+
+// The exit status that Windows gives to processes that it ends when their
+// console closes (STATUS_CONTROL_C_EXIT).
+const controlCExit = 0xc000013a
 
 // sessions maps the *os.File that Start returns to its *session.
 var sessions sync.Map
@@ -27,6 +37,7 @@ type session struct {
 	pipe *os.File // Our end of the duplex pipe.
 	file *os.File // The caller's end of the duplex pipe.
 	once sync.Once
+	done chan struct{} // Closed by close.
 }
 
 // close closes the pseudo console and our end of the pipe. The caller can
@@ -36,6 +47,7 @@ func (s *session) close() {
 		sessions.Delete(s.file)
 		_ = s.cpty.Close()
 		_ = s.pipe.Close()
+		close(s.done)
 	})
 }
 
@@ -71,12 +83,16 @@ func StartWithSize(c *exec.Cmd, ws *Winsize) (*os.File, error) {
 //
 // StartWithAttrs sets c.SysProcAttr to a copy of attrs with the Console
 // field set. It does not change attrs. The process uses the console for its
-// standard input, output, and error, so c.Stdin, c.Stdout, and c.Stderr have
-// no effect.
+// standard input, output, and error, so StartWithAttrs sets c.Stdin, c.Stdout,
+// and c.Stderr to nil.
 //
 // When the process exits, the console closes. Read then returns the remaining
 // output, then io.EOF. Windows also ends other processes that are attached to
 // the console.
+//
+// When the caller closes the file, the console closes and Windows ends the
+// processes that are attached to it. If the process is still alive 5 seconds
+// later, StartWithAttrs terminates it.
 //
 // Use Setsize and GetsizeFull on the returned file to change and read the
 // size of the console.
@@ -98,6 +114,7 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (*os.F
 		cpty: cpty,
 		pipe: os.NewFile(uintptr(server), "conpty"),
 		file: os.NewFile(uintptr(client), "conpty"),
+		done: make(chan struct{}),
 	}
 
 	sys := new(syscall.SysProcAttr)
@@ -106,6 +123,9 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (*os.F
 	}
 	sys.Console = cpty.Handle()
 	c.SysProcAttr = sys
+	// The process does not use these. If they stay set, os/exec still copies
+	// them in goroutines, and a blocked copy makes Wait block.
+	c.Stdin, c.Stdout, c.Stderr = nil, nil, nil
 	if err := c.Start(); err != nil {
 		s.close()
 		_ = s.file.Close()
@@ -114,9 +134,10 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (*os.F
 
 	// Open a separate handle to the process. Then we can wait for it to exit
 	// and the caller can still call c.Wait.
-	process, err := syscall.OpenProcess(syscall.SYNCHRONIZE, false, uint32(c.Process.Pid))
+	process, err := syscall.OpenProcess(syscall.SYNCHRONIZE|syscall.PROCESS_TERMINATE, false, uint32(c.Process.Pid))
 	if err != nil {
 		_ = c.Process.Kill()
+		_ = c.Wait()
 		s.close()
 		_ = s.file.Close()
 		return nil, os.NewSyscallError("OpenProcess", err)
@@ -133,12 +154,34 @@ func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (*os.F
 		_, _ = io.Copy(s.pipe, cpty)
 		s.close()
 	}()
+	go s.watch(process)
+	return s.file, nil
+}
+
+// watch closes the console when the process exits. If the session closes
+// first, watch makes sure that the process exits.
+func (s *session) watch(process syscall.Handle) {
+	defer syscall.CloseHandle(process)
+	exited := make(chan struct{})
 	go func() {
 		_, _ = syscall.WaitForSingleObject(process, syscall.INFINITE)
-		_ = syscall.CloseHandle(process)
-		cpty.CloseConsole()
+		close(exited)
 	}()
-	return s.file, nil
+
+	select {
+	case <-exited:
+		s.cpty.CloseConsole()
+	case <-s.done:
+		// Usually Windows ends the process when the console closes. But if
+		// the console closes while the process attaches to it, the process
+		// can stay alive without a console.
+		select {
+		case <-exited:
+		case <-time.After(closeTimeout):
+			_ = syscall.TerminateProcess(process, controlCExit)
+			<-exited
+		}
+	}
 }
 
 // Setsize resizes the pseudo console of t, a file from Start.
