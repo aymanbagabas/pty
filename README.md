@@ -1,13 +1,27 @@
 # pty
 
-Pty is a Go package for using unix pseudo-terminals.
+Pty is a Go package for using Unix pseudo-terminals and Windows pseudo consoles.
 
 On Windows, with Go 1.28 or later, `Start`, `StartWithSize`, and `StartWithAttrs` use the Windows pseudo console (ConPTY). See [Windows](#windows).
 
 ## Install
 
 ```sh
-go get github.com/creack/pty
+go get github.com/creack/pty/v2
+```
+
+## Upgrading from v1
+
+v2 adds Windows support. `Start`, `StartWithSize`, `StartWithAttrs`, and `Open` return a `Pty` interface instead of an `*os.File`. `Setsize`, `Getsize`, `GetsizeFull`, and `InheritSize` accept a `Pty`. An `*os.File` satisfies `Pty`, so calls such as `pty.InheritSize(os.Stdin, ptmx)` do not change.
+
+On Unix, the `Pty` is still an `*os.File`. Code that needs `*os.File` methods, such as `SetReadDeadline`, can use a type assertion:
+
+```go
+p, err := pty.Start(c)
+if err != nil {
+	return err
+}
+f := p.(*os.File) // Unix only.
 ```
 
 ## Examples
@@ -24,7 +38,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/creack/pty"
+	"github.com/creack/pty/v2"
 )
 
 func main() {
@@ -57,7 +71,7 @@ import (
         "os/signal"
         "syscall"
 
-        "github.com/creack/pty"
+        "github.com/creack/pty/v2"
         "golang.org/x/term"
 )
 
@@ -112,14 +126,15 @@ func main() {
 
 Windows support uses the [pseudo console (ConPTY)](https://learn.microsoft.com/en-us/windows/console/creating-a-pseudoconsole-session). It needs Windows 10 version 1809 or later and Go 1.28 or later, which adds `syscall.SysProcAttr.Console`. With older Go versions, the functions return `ErrUnsupported`.
 
-`Start` returns one `*os.File` that reads the console output and writes the console input, as on Unix. These are the differences:
+`Start` returns a `Pty` that reads the console output and writes the console input, as on Unix. These are the differences:
 
 - The process uses the console for its standard input, output, and error. `Start` sets `c.Stdin`, `c.Stdout`, and `c.Stderr` to `nil`.
 - When the process exits, the console closes. `Read` returns the remaining output, then `io.EOF`. Windows also ends the other processes that are attached to the console.
-- `Close` on the file closes the console.
-- `Setsize`, `Getsize`, and `GetsizeFull` work only on a file from `Start`. Windows has no `SIGWINCH`, so poll for size changes or read them from the console input events.
+- `Close` closes the console. If the process does not exit in 5 seconds, it is terminated.
+- `Setsize` works only on a `Pty` from `Start`. `Getsize` and `GetsizeFull` also work on a console file, such as `os.Stdin` or `os.Stdout`. Windows has no `SIGWINCH`, so poll for size changes or read them from the console input events.
+- `Fd` returns the pseudo console handle (`HPCON`). For deadlines, use a type assertion to `interface{ SetReadDeadline(time.Time) error }`.
 - `Open` returns `ErrUnsupported`, because a Windows pseudo console has no tty file.
 
-The output contains virtual terminal sequences. To use the console directly, for example with your own process creation, use the [`conpty`](https://pkg.go.dev/github.com/creack/pty/conpty) package.
+The output contains virtual terminal sequences. To use the console directly, for example with your own process creation, use the [`conpty`](https://pkg.go.dev/github.com/creack/pty/v2/conpty) package.
 
 See [examples/command](examples/command/main.go) for a program that works on Unix and Windows.

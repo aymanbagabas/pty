@@ -12,10 +12,11 @@ import (
 func openClose(t *testing.T) (pty, tty *os.File) {
 	t.Helper()
 
-	pty, tty, err := Open()
+	p, tty, err := Open()
 	if err != nil {
 		t.Fatalf("Unexpected error from Open: %s.", err)
 	}
+	pty = p.(*os.File)
 	t.Cleanup(func() {
 		if err := tty.Close(); err != nil {
 			t.Errorf("Unexpected error from tty Close: %s.", err)

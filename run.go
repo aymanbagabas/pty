@@ -4,7 +4,6 @@
 package pty
 
 import (
-	"os"
 	"os/exec"
 	"syscall"
 )
@@ -14,7 +13,7 @@ import (
 // corresponding pty.
 //
 // Starts the process in a new session and sets the controlling terminal.
-func Start(cmd *exec.Cmd) (*os.File, error) {
+func Start(cmd *exec.Cmd) (Pty, error) {
 	return StartWithSize(cmd, nil)
 }
 
@@ -27,8 +26,8 @@ func Start(cmd *exec.Cmd) (*os.File, error) {
 //
 // This should generally not be needed. Used in some edge cases where it is needed to create a pty
 // without a controlling terminal.
-func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (*os.File, error) {
-	pty, tty, err := Open()
+func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (Pty, error) {
+	pty, tty, err := open()
 	if err != nil {
 		return nil, err
 	}

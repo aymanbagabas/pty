@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/creack/pty/internal/winpipe"
+	"github.com/creack/pty/v2/internal/winpipe"
 )
 
 var (
@@ -49,11 +49,11 @@ func New(cols, rows int) (*ConPty, error) {
 		return nil, err
 	}
 
-	inServer, inClient, err := winpipe.New(winpipe.Outbound, false)
+	inServer, inClient, err := winpipe.New(winpipe.Outbound)
 	if err != nil {
 		return nil, err
 	}
-	outServer, outClient, err := winpipe.New(winpipe.Inbound, false)
+	outServer, outClient, err := winpipe.New(winpipe.Inbound)
 	if err != nil {
 		_ = syscall.CloseHandle(inServer)
 		_ = syscall.CloseHandle(inClient)
